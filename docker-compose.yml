@@ -8,8 +8,10 @@ services:
       - 9000
     depends_on:
       - db
+      - redis
     links:
       - db
+      - redis
     volumes:
       - ./volumes/api:/var/www/html
 
@@ -43,9 +45,15 @@ services:
       MYSQL_ROOT_PASSWORD: "toor"
       MYSQL_DATABASE: "app"
 
+  redis:
+    image: redis:latest
+    container_name: todo_redis
+    restart: unless-stopped
+
   pma:
     image: phpmyadmin/phpmyadmin:latest
     platform: linux/amd64
+    container_name: todo_pma
     depends_on:
       - db
     links:
