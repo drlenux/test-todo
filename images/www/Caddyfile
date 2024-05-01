@@ -1,0 +1,19 @@
+dev.local www.dev.local {
+    root * /var/www/html/public
+
+    encode zstd gzip
+    file_server
+
+    php_fastcgi api:9000 {
+        env APP_ENV "dev"
+        # env APP_SECRET "<app-secret-id>"
+        # env DATABASE_URL "mysql://root:toor@db/app?serverVersion=8.0.32&charset=utf8mb4"
+
+        resolve_root_symlink
+    }
+
+    @phpFile {
+        path *.php*
+    }
+    error @phpFile "Not found -caddy-" 404
+}

@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./images/api
+    container_name: todo_api
+    expose:
+      - 9000
+    depends_on:
+      - db
+    links:
+      - db
+    volumes:
+      - ./volumes/api:/var/www/html
+
+  www:
+    image: caddy:latest
+    container_name: todo_www
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    links:
+      - api
+    depends_on:
+      - api
+    volumes:
+      - ./images/www/Caddyfile:/etc/caddy/Caddyfile
+      - ./volumes/api:/var/www/html
+      - ./volumes/caddy/data:/data
+      - ./volumes/caddy/conf:/config
+    ports:
+      - 80:80
+      - 443:443
+
+  db:
+    image: mysql:8
+    container_name: todo_db
+    ports:
+      - 3306:3306
+    volumes:
+      - ./volumes/db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "toor"
+      MYSQL_DATABASE: "app"
+
+  pma:
+    image: phpmyadmin/phpmyadmin:latest
+    platform: linux/amd64
+    depends_on:
+      - db
+    links:
+      - db
+    ports:
+      - 8080:80
