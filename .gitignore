@@ -1,1 +1,4 @@
 .idea
+volumes/db
+volumes/caddy/conf
+volumes/caddy/data
