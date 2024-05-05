@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
@@ -12,8 +14,7 @@ final readonly class UserPasswordHasher implements ProcessorInterface
     public function __construct(
         private ProcessorInterface $processor,
         private UserPasswordHasherInterface $passwordHasher
-    )
-    {
+    ) {
     }
 
     /**
