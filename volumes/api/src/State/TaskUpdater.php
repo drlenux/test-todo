@@ -6,16 +6,13 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Constants\TaskStateEnum;
 use App\Entity\Task;
-use App\Repository\UserRepository;
-use Symfony\Bundle\SecurityBundle\Security;
+use InvalidArgumentException;
 
 
 final readonly class TaskUpdater implements ProcessorInterface
 {
     public function __construct(
         private ProcessorInterface $processor,
-        private Security $security,
-        private UserRepository $userRepository,
     ) {
     }
 
@@ -30,7 +27,14 @@ final readonly class TaskUpdater implements ProcessorInterface
 
     private function update(Task $data): void
     {
-        if ($data->getStatus() === TaskStateEnum::DONE && !$data->getCompletedAt()) {
+        if ($data->getStatus() === TaskStateEnum::DONE && $data->getCompletedAt() === null) {
+            foreach ($data->getSubTask() as $task) {
+                if ($task->getStatus() === TaskStateEnum::TODO) {
+                    throw new InvalidArgumentException(
+                        'To change the status, all subtasks must be in the "completed" status'
+                    );
+                }
+            }
             $data->setCompletedAt(new \DateTimeImmutable());
         }
     }

@@ -12,8 +12,8 @@ use ApiPlatform\Metadata\Put;
 use App\Constants\TaskPriorityEnum;
 use App\Constants\TaskStateEnum;
 use App\Repository\TaskRepository;
-use App\State\TaskCreateProvider;
 use App\State\TaskCreator;
+use App\State\TaskReadAll;
 use App\State\TaskUpdater;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -24,6 +24,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(operations: [
     new GetCollection(
         normalizationContext: ['groups' => ['task:read']],
+        provider: TaskReadAll::class
     ),
     new Get(
         security: "object.user == user"
@@ -34,8 +35,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
         processor: TaskCreator::class
     ),
     new Delete(),
-    new Patch(processor: TaskUpdater::class),
-    new Put(processor: TaskUpdater::class),
+    new Patch(
+        denormalizationContext: ['groups' => ['task:update']],
+        processor: TaskUpdater::class
+    ),
+    new Put(
+        denormalizationContext: ['groups' => ['task:update']],
+        processor: TaskUpdater::class
+    ),
 ])]
 class Task
 {
@@ -58,15 +65,15 @@ class Task
     public ?User $user = null;
 
     #[ORM\Column(type: 'string', length: 30, enumType: TaskStateEnum::class)]
-    #[Groups(['task:create', 'task:read'])]
+    #[Groups(['task:read', 'task:update'])]
     private ?TaskStateEnum $status = TaskStateEnum::TODO;
 
     #[ORM\Column(type: 'integer', enumType: TaskPriorityEnum::class)]
-    #[Groups(['task:create', 'task:read'])]
+    #[Groups(['task:create', 'task:read', 'task:update'])]
     private ?TaskPriorityEnum $priority = TaskPriorityEnum::THIRD;
 
     #[ORM\Column]
-    #[Groups(['task:read'])]
+    #[Groups(['task:read', 'task:update'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
@@ -74,7 +81,7 @@ class Task
     private ?\DateTimeImmutable $completedAt = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'subTask')]
-    #[Groups(['task:create'])]
+    #[Groups(['task:create', 'task:update'])]
     private ?self $parentTask = null;
 
     /**
